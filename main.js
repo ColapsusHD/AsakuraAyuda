@@ -1,3 +1,4 @@
+
 const fs = require("fs");
 const chalk = require("chalk");
 const { isOwner, setPrefix, allowedPrefixes } = require("./config");
@@ -14458,166 +14459,23 @@ case "kick": {
         
 
         
-case "tiktok":
-case "tt":
-    if (!text) {
-        return sock.sendMessage(msg.key.remoteJid, {
-            text: `⚠️ *Ejemplo de uso:*\n📌 ${global.prefix + command} https://vm.tiktok.com/ZMjdrFCtg/`
-        });
-    }
 
-    if (!isUrl(args[0]) || !args[0].includes('tiktok')) {
-        return sock.sendMessage(msg.key.remoteJid, { 
-            text: "❌ *Enlace de TikTok inválido.*" 
-        }, { quoted: msg });
-    }
 
-    try {
-        // ⏱️ Reacción de carga mientras se procesa el comando
-        await sock.sendMessage(msg.key.remoteJid, { 
-            react: { text: '⏱️', key: msg.key } 
-        });
 
-        const axios = require('axios');
-        const fs = require('fs');
-        const path = require('path');
 
-        // ==== CONFIG DE TU API SKY ====
-        const API_BASE = process.env.API_BASE || "https://api-sky.ultraplus.click";
-        const API_KEY  = process.env.API_KEY  || "Russellxz";
 
-        // Llamar a tu API de TikTok
-        const response = await axios.get(`${API_BASE}/api/download/tiktok.js`, {
-            params: { url: args[0] },
-            headers: { 
-                Authorization: `Bearer ${API_KEY}`,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
-            },
-            timeout: 30000
-        });
 
-        if (!response.data || response.data.status !== "true" || !response.data.data) {
-            throw new Error("La API de Sky no devolvió datos válidos.");
-        }
-
-        const videoData = response.data.data;
-        const videoUrl = videoData.video;
-        const videoTitle = videoData.title || "Sin título";
-        const videoAuthor = videoData.author?.name || "Desconocido";
-        const videoUsername = videoData.author?.username || "";
-        const videoDuration = videoData.duration ? `${videoData.duration} segundos` : "No especificado";
-        const videoLikes = videoData.likes?.toLocaleString() || "0";
-        const videoComments = videoData.comments?.toLocaleString() || "0";
-        const videoShares = videoData.shares?.toLocaleString() || "0";
-        const videoViews = videoData.views?.toLocaleString() || "0";
-        const soliRemaining = response.data.soli_remaining || 0;
-
-        if (!videoUrl) {
-            throw new Error("No se pudo obtener el video de TikTok.");
-        }
-
-        // Asegurar carpeta ./tmp
-        const tmpDir = path.resolve('./tmp');
-        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-        const filePath = path.join(tmpDir, `tt-${Date.now()}.mp4`);
-
-        // Descargar y guardar el video
-        const videoRes = await axios.get(videoUrl, { 
-            responseType: 'stream',
-            timeout: 45000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-                'Referer': 'https://www.tiktok.com/',
-                'Accept': '*/*'
-            }
-        });
-
-        const writer = fs.createWriteStream(filePath);
-        await new Promise((resolve, reject) => {
-            videoRes.data.pipe(writer);
-            writer.on("finish", resolve);
-            writer.on("error", reject);
-        });
-
-        // Verificar tamaño del archivo
-        const stats = fs.statSync(filePath);
-        const sizeMB = stats.size / (1024 * 1024);
-        if (sizeMB > 99) {
-            fs.unlinkSync(filePath);
-            return sock.sendMessage(msg.key.remoteJid, {
-                text: `❌ El archivo pesa ${sizeMB.toFixed(2)}MB y excede el límite de 99MB.\n\n🔒 Solo se permiten descargas menores a 99MB para no saturar los servidores.`
-            }, { quoted: msg });
-        }
-
-        // 📜 Mensaje con la información del video
-        let mensaje = `🎥 *Video de TikTok* 🎥\n\n`;
-        mensaje += `📌 *Título:* ${videoTitle}\n`;
-        mensaje += `👤 *Autor:* ${videoAuthor}`;
-        if (videoUsername) mensaje += ` (@${videoUsername})`;
-        mensaje += `\n⏱️ *Duración:* ${videoDuration}\n`;
-        mensaje += `❤️ *Likes:* ${videoLikes} | 💬 *Comentarios:* ${videoComments}\n`;
-        mensaje += `🔄 *Compartidos:* ${videoShares} | 👀 *Vistas:* ${videoViews}\n`;
-        mensaje += `🎫 *Soli restantes:* ${soliRemaining}\n\n`;
-        mensaje += `───────\n🍧 *API utilizada:* ${API_BASE}\n`;
-        mensaje += `© La Suki Bot`;
-
-        // 📩 Enviar video
-        await sock.sendMessage(msg.key.remoteJid, {
-            video: fs.readFileSync(filePath),
-            mimetype: 'video/mp4',
-            caption: mensaje,
-            contextInfo: {
-                externalAdReply: {
-                    title: `TikTok de ${videoAuthor}`,
-                    body: videoTitle.substring(0, 60) + (videoTitle.length > 60 ? '...' : ''),
-                    thumbnailUrl: videoData.thumbnail,
-                    sourceUrl: args[0],
-                    mediaType: 1,
-                    renderLargerThumbnail: true
-                }
-            }
-        }, { quoted: msg });
-
-        // Eliminar archivo temporal
-        fs.unlinkSync(filePath);
-
-        // ✅ Reacción de éxito
-        await sock.sendMessage(msg.key.remoteJid, { 
-            react: { text: "✅", key: msg.key } 
-        });
-
-    } catch (error) {
-        console.error("❌ Error en el comando .tiktok:", error.message);
-        
-        let errorMsg = "❌ *Ocurrió un error al procesar el enlace de TikTok.*\n";
-        
-        if (error.response?.status === 401) {
-            errorMsg = "❌ *Error de autenticación en la API.*\n🔹 Verifica tu API Key.";
-        } else if (error.response?.status === 402) {
-            errorMsg = "❌ *No tienes suficientes soli.*\n🔹 Recarga tus créditos para continuar.";
-        } else if (error.code === 'ECONNABORTED') {
-            errorMsg = "❌ *Tiempo de espera agotado.*\n🔹 El servidor tardó demasiado en responder.";
-        } else if (error.message.includes('API inválida')) {
-            errorMsg = "❌ *Error en la API de Sky.*\n🔹 Inténtalo más tarde.";
-        }
-        
-        errorMsg += "\n🔹 _Inténtalo más tarde._";
-
-        await sock.sendMessage(msg.key.remoteJid, { 
-            text: errorMsg
-        }, { quoted: msg });
-
-        // ❌ Reacción de error
-        await sock.sendMessage(msg.key.remoteJid, { 
-            react: { text: "❌", key: msg.key } 
-        });
-    }
-    break;
-    case "instagram":
-case "ig":
+case "facebook":
+case "fb":
     if (!text) return sock.sendMessage(msg.key.remoteJid, { 
-        text: `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n📌 *Ejemplo de uso:*\n${global.prefix + command} https://www.instagram.com/p/CCoI4DQBGVQ/\n\n❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦` 
+        text: `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n📌 *Ejemplo de uso:*\n${global.prefix + command} https://fb.watch/ncowLHMp-x/\n\n❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦` 
     }, { quoted: msg });
+
+    if (!text.match(/www.facebook.com|fb.watch/g)) {
+        return sock.sendMessage(msg.key.remoteJid, {
+            text: `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n❌ *Enlace de Facebook inválido.*\n📌 *Ejemplo de uso:*\n${global.prefix + command} https://fb.watch/ncowLHMp-x/\n\n❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦`
+        });
+    }
 
     try {
         // ⏳ Reacción de carga mientras se procesa
@@ -14633,8 +14491,8 @@ case "ig":
         const API_BASE = process.env.API_BASE || "https://api-sky.ultraplus.click";
         const API_KEY  = process.env.API_KEY  || "Russellxz";
 
-        // Llamar a tu API de Instagram
-        const response = await axios.get(`${API_BASE}/api/download/instagram.js`, {
+        // Llamar a tu API de Facebook
+        const response = await axios.get(`${API_BASE}/api/download/facebook.js`, {
             params: { url: text },
             headers: { 
                 Authorization: `Bearer ${API_KEY}`,
@@ -14647,32 +14505,34 @@ case "ig":
             throw new Error("La API de Sky no devolvió datos válidos.");
         }
 
-        const mediaData = response.data.data;
-        const mediaItems = mediaData.media || [];
-        const captionText = mediaData.caption || "Sin descripción";
-        const authorName = mediaData.author || "Desconocido";
+        const videoData = response.data.data;
+        const videoUrlHD = videoData.video_hd;
+        const videoUrlSD = videoData.video_sd;
+        const videoTitle = videoData.title || "Sin título";
+        const videoThumbnail = videoData.thumbnail;
+        const videoDuration = videoData.duration ? `${videoData.duration} segundos` : "No especificado";
         const soliRemaining = response.data.soli_remaining || 0;
 
-        // Buscar el primer video
-        const videoItem = mediaItems.find(item => item.type === 'video');
-        
-        if (!videoItem) {
-            throw new Error("No se encontró un video en la publicación.");
+        // Preferir HD, si no existe usar SD
+        const videoUrl = videoUrlHD || videoUrlSD;
+
+        if (!videoUrl) {
+            throw new Error("No se pudo obtener el video de Facebook.");
         }
 
         // Asegurar carpeta tmp
         const tmpDir = path.resolve('./tmp');
         if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
-        const filePath = path.join(tmpDir, `ig-${Date.now()}.mp4`);
+        const filePath = path.join(tmpDir, `fb-${Date.now()}.mp4`);
 
-        // Descargar el video
-        const videoRes = await axios.get(videoItem.url, { 
+        // Descargar y guardar el video
+        const videoRes = await axios.get(videoUrl, { 
             responseType: 'stream',
             timeout: 45000,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-                'Referer': 'https://www.instagram.com/',
+                'Referer': 'https://www.facebook.com/',
                 'Accept': '*/*'
             }
         });
@@ -14690,29 +14550,42 @@ case "ig":
         if (sizeMB > 99) {
             fs.unlinkSync(filePath);
             return sock.sendMessage(msg.key.remoteJid, {
-                text: `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n❌ El video pesa ${sizeMB.toFixed(2)}MB y excede el límite de 99MB.\n\n🔒 No se puede enviar para no saturar los servidores.\n\n❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦`
+                text: `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n❌ El archivo pesa ${sizeMB.toFixed(2)}MB y excede el límite de 99MB.\n\n🔒 Solo se permiten descargas menores a 99MB para no saturar los servidores.\n\n❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦`
             }, { quoted: msg });
         }
 
         // 📜 Construcción del mensaje
-        const caption = `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦
+        const message = `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦
 
 📀 𝙸𝚗𝚏𝚘 𝚍𝚎𝚕 𝚟𝚒𝚍𝚎𝚘:
-❥ 𝑨𝒖𝒕𝒐𝒓: ${authorName}
+❥ 𝑻𝒊𝒕𝒖𝒍𝒐: ${videoTitle}
+❥ 𝑫𝒖𝒓𝒂𝒄𝒊𝒐𝒏: ${videoDuration}
+❥ 𝑪𝒂𝒍𝒊𝒅𝒂𝒅: ${videoUrlHD ? "HD (720p)" : "SD (360p)"}
 ❥ 𝑺𝒐𝒍𝒊 𝒓𝒆𝒔𝒕𝒂𝒏𝒕𝒆𝒔: ${soliRemaining}
 
-📝 𝑫𝒆𝒔𝒄𝒓𝒊𝒑𝒄𝒊𝒐́𝒏:
-${captionText.substring(0, 250)}${captionText.length > 250 ? '...' : ''}
+🎬 𝑹𝒆𝒔𝒐𝒍𝒖𝒄𝒊𝒐𝒏𝒆𝒔 𝒅𝒊𝒔𝒑𝒐𝒏𝒊𝒃𝒍𝒆𝒔:
+☛ ${videoUrlHD ? "🎯 HD (720p) - Enviado" : "❌ HD No disponible"}
+☛ ${videoUrlSD ? "📱 SD (360p)" : "❌ SD No disponible"}
 
 🔧 API: api-sky.ultraplus.click
 
 ❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦`.trim();
 
-        // Enviar el video
-        await sock.sendMessage(msg.key.remoteJid, { 
-            video: fs.readFileSync(filePath), 
+        // 📩 Enviar el video
+        await sock.sendMessage(msg.key.remoteJid, {
+            video: fs.readFileSync(filePath),
             mimetype: 'video/mp4',
-            caption: caption
+            caption: message,
+            contextInfo: {
+                externalAdReply: {
+                    title: `Video de Facebook`,
+                    body: videoTitle.substring(0, 60) + (videoTitle.length > 60 ? '...' : ''),
+                    thumbnailUrl: videoThumbnail,
+                    sourceUrl: text,
+                    mediaType: 1,
+                    renderLargerThumbnail: true
+                }
+            }
         }, { quoted: msg });
 
         // Eliminar archivo temporal
@@ -14724,9 +14597,9 @@ ${captionText.substring(0, 250)}${captionText.length > 250 ? '...' : ''}
         });
 
     } catch (error) {
-        console.error("❌ Error en el comando .instagram:", error.message);
+        console.error("❌ Error en el comando .facebook:", error.message);
         
-        let errorMsg = `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n❌ *Ocurrió un error al procesar el enlace de Instagram.*\n`;
+        let errorMsg = `❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦\n\n❌ *Ocurrió un error al procesar el enlace de Facebook.*\n`;
         
         if (error.response?.status === 401) {
             errorMsg += "🔹 *Error de autenticación en la API.*\n🔹 Verifica tu API Key.";
@@ -14736,8 +14609,8 @@ ${captionText.substring(0, 250)}${captionText.length > 250 ? '...' : ''}
             errorMsg += "🔹 *Tiempo de espera agotado.*\n🔹 El servidor tardó demasiado en responder.";
         } else if (error.message.includes('API inválida')) {
             errorMsg += "🔹 *Error en la API de Sky.*\n🔹 Inténtalo más tarde.";
-        } else if (error.message.includes('No se encontró un video')) {
-            errorMsg += "🔹 *No se encontró un video en la publicación.*\n🔹 Solo se descargan videos.";
+        } else if (error.message.includes('No se pudo obtener')) {
+            errorMsg += "🔹 *No se pudo descargar el video.*\n🔹 El enlace puede ser privado o inválido.";
         }
         
         errorMsg += "\n\n🔹 _Inténtalo más tarde._\n\n❦𝑳𝑨 𝑺𝑼𝑲𝑰 𝑩𝑶𝑻❦";
@@ -14752,13 +14625,10 @@ ${captionText.substring(0, 250)}${captionText.length > 250 ? '...' : ''}
         });
     }
     break;
-
-
-
+}
 }
 
 
 
 module.exports = { handleCommand };
-
 
