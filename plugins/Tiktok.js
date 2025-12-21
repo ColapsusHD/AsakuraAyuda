@@ -100,7 +100,7 @@ Elige cómo enviarlo:
 ✦ 𝗗𝘂𝗿.: ${durTxt} • 👍 ${likes} · 💬 ${comments}
 ✦ 𝗦𝗼𝘂𝗿𝗰𝗲: ${API_BASE}
 ────────────
-🤖 𝙎𝙪𝙠𝙞 𝘽𝙤𝙩`;
+🤖azura ultra 𝘽𝙤𝙩`;
 
     const preview = await conn.sendMessage(chatId, { text: txt }, { quoted: msg });
 
