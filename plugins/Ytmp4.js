@@ -212,7 +212,7 @@ Elige cómo enviarlo:
 ⚙️ Calidad: ${chosenQ === "4k" ? "4K" : `${chosenQ}p`}
 ✦ Source: api-sky.ultraplus.click
 ────────────
-🤖 𝙎𝙪𝙠𝙞 𝘽𝙤𝙩`;
+🤖 azura ultra 𝘽𝙤𝙩`;
 
     const selectorMsg = await conn.sendMessage(chatId, { text: caption }, { quoted: msg });
 
