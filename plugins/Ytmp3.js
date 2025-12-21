@@ -182,7 +182,7 @@ Elige cómo enviarlo:
 ✦ 𝗗𝘂𝗿𝗮𝗰𝗶𝗼́𝗻: ${durationTxt}
 ✦ 𝗦𝗼𝘂𝗿𝗰𝗲: api-sky.ultraplus.click
 ────────────
-🤖 𝙎𝙪𝙠𝙞 𝘽𝙤𝙩`;
+🤖 azura ultra 𝘽𝙤𝙩`;
 
     const preview = thumb
       ? await conn.sendMessage(chatId, { image: { url: thumb }, caption }, { quoted: msg })
